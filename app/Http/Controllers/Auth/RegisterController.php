@@ -8,6 +8,7 @@ use App\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Twilio\Rest\Client;
 
 class RegisterController extends Controller
 {
@@ -20,7 +21,7 @@ class RegisterController extends Controller
     | validation and creation. By default this controller uses a trait to
     | provide this functionality without requiring any additional code.
     |
-    */
+     */
 
     use RegistersUsers;
 
@@ -69,5 +70,24 @@ class RegisterController extends Controller
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
+    }
+
+    protected function registered($user)
+    {
+        $twilio = new Client(env('TWILIO_AUTH_SID'), env('TWILIO_AUTH_TOKEN'));
+
+        try {
+            $twilio->chat->v2->services(env('TWILIO_CHAT_SERVICE_SID'))
+                ->channels('chatroom')
+                ->members($user->username)
+                ->fetch();
+        } catch (\Twilio\Exceptions\RestException $e) {
+            $twilio->chat->v2->services(env('TWILIO_CHAT_SERVICE_SID'))
+                ->channels('chatroom')
+                ->members
+                ->create($user->username);
+        }
+
+        return redirect('/chatroom');
     }
 }

@@ -6,21 +6,21 @@ use Illuminate\Console\Command;
 use Twilio\Rest\Client;
 use App\User;
 
-class InitChannel extends Command
+class AddNewMember extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'channel:init';
+    protected $signature = 'channel:newMember';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Initialize channel';
+    protected $description = 'Add New Member';
 
     /**
      * Create a new command instance.
@@ -39,29 +39,21 @@ class InitChannel extends Command
      */
     public function handle()
     {
-        //
         $user = User::create([
-            'username' => 'mezie',
-            'email' => 'chimezie@adonismastery.com',
-            'password' => bcrypt('password')
+            'username' => 'john',
+            'email' => 'john@gmail.com',
+            'password' => bcrypt('john')
         ]);
 
         $twilio = new Client(env('TWILIO_AUTH_SID'), env('TWILIO_AUTH_TOKEN'));
-        $channel = $twilio->chat->v2->services(env('TWILIO_CHAT_SERVICE_SID'))
-            ->channels
-            ->create([
-                'friendlyName' => 'chatroom',
-                'uniqueName' => 'chatroom',
-                'createdBy' => $user->username
-            ]);
 
         $twilio->chat->v2->services(env('TWILIO_CHAT_SERVICE_SID'))
-            ->channels($channel->sid)
+            ->channels(env('MIX_CHANNEL_SID'))
             ->members
             ->create($user->username, [
-                'roleSid' => env('MIX_CHANNEL_ADMIN_ROLE_SID')
+                'roleSid' => env('MIX_CHANNEL_MEMBER_ROLE_SID')
             ]);
 
-        return $this->info('Channel initialized');
+        return $this->info('Add new members in channel!');
     }
 }

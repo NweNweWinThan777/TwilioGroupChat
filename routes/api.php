@@ -14,3 +14,5 @@ use Illuminate\Http\Request;
 */
 
 Route::post('/token', 'TokenController@generate');
+Route::post('/members/{username}/ban', 'MemberController@ban');
+Route::post('/members/{username}/unban', 'MemberController@unban');

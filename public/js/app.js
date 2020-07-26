@@ -1966,6 +1966,36 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: "ChatRoom",
   props: {
@@ -1977,8 +2007,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   data: function data() {
     return {
       messages: [],
-      newMessage: '',
-      channel: ''
+      newMessage: "",
+      channel: "",
+      members: [],
+      member: "",
+      isBanned: false,
+      adminRoleSid: "RLc0ed3e546eb44f078c12a63546190de9",
+      memberRoleSid: "RL63937b048ac74c04853c0560b07bc7c4",
+      bannedRoleSid: "RL6cfb6e9c4ea44088a7ec78a783df424c"
     };
   },
   created: function created() {
@@ -2026,7 +2062,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             switch (_context2.prev = _context2.next) {
               case 0:
                 _context2.next = 2;
-                return axios.post('/api/token', {
+                return axios.post("/api/token", {
                   username: _this2.user.username
                 });
 
@@ -2084,16 +2120,46 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
                   }, _callee3);
                 })));
                 _context4.next = 6;
-                return client.getChannelBySid('chatroom');
+                return client.getChannelBySid("chatroom");
 
               case 6:
                 _this3.channel = _context4.sent;
 
                 _this3.channel.on("messageAdded", function (message) {
                   _this3.messages.push(message);
+                }); // check member
+
+
+                _context4.next = 10;
+                return _this3.channel.getMembers();
+
+              case 10:
+                _this3.members = _context4.sent;
+                _context4.next = 13;
+                return _this3.channel.getMemberByIdentity(_this3.user.username);
+
+              case 13:
+                _this3.member = _context4.sent;
+
+                //  join member
+                _this3.channel.on("memberJoined", function (member) {
+                  _this3.members.push(member);
+                }); //  update member
+
+
+                _this3.channel.on("memberUpdated", function (_ref3) {
+                  var member = _ref3.member;
+
+                  if (member.identity === _this3.user.username && member.roleSid === _this3.bannedRoleSid) {
+                    _this3.isBanned = true;
+                  }
+
+                  if (member.identity === _this3.user.username && member.roleSid === _this3.memberRoleSid) {
+                    _this3.isBanned = false;
+                  }
                 });
 
-              case 8:
+              case 16:
               case "end":
                 return _context4.stop();
             }
@@ -2125,9 +2191,47 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }, _callee5);
       }))();
     },
+    banMember: function banMember(identity) {
+      return _asyncToGenerator(
+      /*#__PURE__*/
+      _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee6() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                _context6.next = 2;
+                return axios.post("/api/members/".concat(identity, "/ban"));
+
+              case 2:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6);
+      }))();
+    },
+    unbanMember: function unbanMember(identity) {
+      return _asyncToGenerator(
+      /*#__PURE__*/
+      _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee7() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                _context7.next = 2;
+                return axios.post("/api/members/".concat(identity, "/unban"));
+
+              case 2:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7);
+      }))();
+    },
     sendMessage: function sendMessage() {
       this.channel.sendMessage(this.newMessage);
-      this.newMessage = '';
+      this.newMessage = "";
     }
   }
 });
@@ -38243,7 +38347,75 @@ var render = function() {
   var _c = _vm._self._c || _h
   return _c("div", { staticClass: "container" }, [
     _c("div", { staticClass: "row" }, [
-      _vm._m(0),
+      _c("div", { staticClass: "col-md-4" }, [
+        _c("div", { staticClass: "card mb-3" }, [
+          _c("div", { staticClass: "card-header" }, [_vm._v("Members")]),
+          _vm._v(" "),
+          _c("div", { staticClass: "card-body" }, [
+            _vm.members.length > 0
+              ? _c(
+                  "ul",
+                  { staticClass: "list-group list-group-flush" },
+                  _vm._l(_vm.members, function(mem) {
+                    return _c(
+                      "li",
+                      {
+                        key: mem.sid,
+                        staticClass:
+                          "list-group-item d-flex justify-content-between align-items-center"
+                      },
+                      [
+                        _vm._v(
+                          "\n              " +
+                            _vm._s(mem.identity) +
+                            "\n              "
+                        ),
+                        _c("div", { staticClass: "btn-group" }, [
+                          _vm.member.roleSid === _vm.adminRoleSid &&
+                          mem.roleSid === _vm.memberRoleSid &&
+                          _vm.user.username !== mem.identity
+                            ? _c(
+                                "button",
+                                {
+                                  staticClass: "btn btn-primary btn-sm",
+                                  attrs: { type: "button" },
+                                  on: {
+                                    click: function($event) {
+                                      return _vm.banMember(mem.identity)
+                                    }
+                                  }
+                                },
+                                [_vm._v("Ban")]
+                              )
+                            : _vm._e(),
+                          _vm._v(" "),
+                          _vm.member.roleSid === _vm.adminRoleSid &&
+                          mem.roleSid === _vm.bannedRoleSid &&
+                          _vm.user.username !== mem.identity
+                            ? _c(
+                                "button",
+                                {
+                                  staticClass: "btn btn-primary btn-sm ml-3",
+                                  attrs: { type: "button" },
+                                  on: {
+                                    click: function($event) {
+                                      return _vm.unbanMember(mem.identity)
+                                    }
+                                  }
+                                },
+                                [_vm._v("Unban")]
+                              )
+                            : _vm._e()
+                        ])
+                      ]
+                    )
+                  }),
+                  0
+                )
+              : _c("p", [_vm._v("No members")])
+          ])
+        ])
+      ]),
       _vm._v(" "),
       _c("div", { staticClass: "col-md-8" }, [
         _c("div", { staticClass: "card" }, [
@@ -38263,13 +38435,7 @@ var render = function() {
                       "text-right": message.author === _vm.user.username
                     }
                   },
-                  [
-                    _vm._v(
-                      "\n                            " +
-                        _vm._s(message.body) +
-                        "\n                        "
-                    )
-                  ]
+                  [_vm._v(_vm._s(message.body))]
                 )
               ])
             }),
@@ -38277,56 +38443,47 @@ var render = function() {
           ),
           _vm._v(" "),
           _c("div", { staticClass: "card-footer" }, [
-            _c("input", {
-              directives: [
-                {
-                  name: "model",
-                  rawName: "v-model",
-                  value: _vm.newMessage,
-                  expression: "newMessage"
-                }
-              ],
-              staticClass: "form-control",
-              attrs: { type: "text", placeholder: "Type your message..." },
-              domProps: { value: _vm.newMessage },
-              on: {
-                keyup: function($event) {
-                  if (
-                    !$event.type.indexOf("key") &&
-                    _vm._k($event.keyCode, "enter", 13, $event.key, "Enter")
-                  ) {
-                    return null
+            _vm.member.roleSid === _vm.bannedRoleSid || _vm.isBanned
+              ? _c("div", { staticClass: "text-center" }, [
+                  _vm._v("You have been banned from sending messages.")
+                ])
+              : _c("input", {
+                  directives: [
+                    {
+                      name: "model",
+                      rawName: "v-model",
+                      value: _vm.newMessage,
+                      expression: "newMessage"
+                    }
+                  ],
+                  staticClass: "form-control",
+                  attrs: { type: "text", placeholder: "Type your message..." },
+                  domProps: { value: _vm.newMessage },
+                  on: {
+                    keyup: function($event) {
+                      if (
+                        !$event.type.indexOf("key") &&
+                        _vm._k($event.keyCode, "enter", 13, $event.key, "Enter")
+                      ) {
+                        return null
+                      }
+                      return _vm.sendMessage($event)
+                    },
+                    input: function($event) {
+                      if ($event.target.composing) {
+                        return
+                      }
+                      _vm.newMessage = $event.target.value
+                    }
                   }
-                  return _vm.sendMessage($event)
-                },
-                input: function($event) {
-                  if ($event.target.composing) {
-                    return
-                  }
-                  _vm.newMessage = $event.target.value
-                }
-              }
-            })
+                })
           ])
         ])
       ])
     ])
   ])
 }
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "col-md-4" }, [
-      _c("div", { staticClass: "card mb-3" }, [
-        _c("div", { staticClass: "card-header" }, [_vm._v("Members")]),
-        _vm._v(" "),
-        _c("div", { staticClass: "card-body" })
-      ])
-    ])
-  }
-]
+var staticRenderFns = []
 render._withStripped = true
 
 
@@ -50660,8 +50817,8 @@ __webpack_require__.r(__webpack_exports__);
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! /Users/chimezieenyinnaya/workspace/Laravel/twilio-group-chat-admin-moderation/resources/js/app.js */"./resources/js/app.js");
-module.exports = __webpack_require__(/*! /Users/chimezieenyinnaya/workspace/Laravel/twilio-group-chat-admin-moderation/resources/sass/app.scss */"./resources/sass/app.scss");
+__webpack_require__(/*! D:\NWT\TwilioGroupChat\resources\js\app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! D:\NWT\TwilioGroupChat\resources\sass\app.scss */"./resources/sass/app.scss");
 
 
 /***/ })
